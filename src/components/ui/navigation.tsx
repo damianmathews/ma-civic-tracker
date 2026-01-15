@@ -10,15 +10,18 @@ import {
   Calendar,
   Bell,
   Home,
+  Baby,
+  AlertTriangle,
 } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/boston', label: 'Boston Spending', icon: Building2 },
-  { href: '/massachusetts', label: 'MA State Spending', icon: DollarSign },
-  { href: '/representatives', label: 'Representatives', icon: Users },
-  { href: '/meetings', label: 'Public Meetings', icon: Calendar },
-  { href: '/alerts', label: 'Alerts', icon: Bell },
+  { href: '/boston', label: 'Boston', icon: Building2 },
+  { href: '/massachusetts', label: 'MA State', icon: DollarSign },
+  { href: '/childcare', label: 'Childcare', icon: Baby },
+  { href: '/alerts', label: 'Fraud Detection', icon: AlertTriangle },
+  { href: '/representatives', label: 'Reps', icon: Users },
+  { href: '/meetings', label: 'Meetings', icon: Calendar },
 ];
 
 export function Navigation() {
