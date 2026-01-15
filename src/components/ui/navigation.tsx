@@ -8,10 +8,10 @@ import {
   DollarSign,
   Users,
   Calendar,
-  Bell,
   Home,
   Baby,
   AlertTriangle,
+  Search,
 } from 'lucide-react';
 
 const navItems = [
@@ -19,9 +19,9 @@ const navItems = [
   { href: '/boston', label: 'Boston', icon: Building2 },
   { href: '/massachusetts', label: 'MA State', icon: DollarSign },
   { href: '/childcare', label: 'Childcare', icon: Baby },
-  { href: '/alerts', label: 'Fraud Detection', icon: AlertTriangle },
+  { href: '/audit', label: 'Audit', icon: Search },
+  { href: '/alerts', label: 'Fraud', icon: AlertTriangle },
   { href: '/representatives', label: 'Reps', icon: Users },
-  { href: '/meetings', label: 'Meetings', icon: Calendar },
 ];
 
 export function Navigation() {
