@@ -8,6 +8,7 @@ interface StatCardProps {
   value: string;
   description?: string;
   icon?: LucideIcon;
+  iconColor?: string;
   trend?: {
     value: number;
     label: string;
@@ -20,6 +21,7 @@ export function StatCard({
   value,
   description,
   icon: Icon,
+  iconColor = 'text-blue-700',
   trend,
   className,
 }: StatCardProps) {
@@ -58,8 +60,8 @@ export function StatCard({
           )}
         </div>
         {Icon && (
-          <div className="rounded-lg bg-blue-100 p-3">
-            <Icon className="h-6 w-6 text-blue-700" />
+          <div className="rounded-lg bg-slate-100 p-3">
+            <Icon className={cn('h-6 w-6', iconColor)} />
           </div>
         )}
       </div>
