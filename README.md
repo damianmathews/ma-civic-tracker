@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MA Civic Tracker
+
+A civic transparency tool for monitoring Massachusetts and Boston government spending, identifying anomalies, and helping citizens engage with their representatives.
+
+## Features
+
+- **Boston Spending Dashboard** - Explore city checkbook data from Analyze Boston
+- **Massachusetts State Spending** - Track state-level expenditures and contracts
+- **Anomaly Detection** - Automated flagging of unusual spending patterns
+- **Representative Finder** - Look up your elected officials
+- **Public Meetings** - Find upcoming government meetings
+
+## Data Sources
+
+- [Analyze Boston](https://data.boston.gov) - Boston's open data portal
+- [MA Open Checkbook](https://cthru.data.socrata.com/) - Massachusetts state spending
+- [Mass.gov Open Data](https://www.mass.gov/topics/open-data) - State government data
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- npm
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/ma-civic-tracker.git
+cd ma-civic-tracker
+
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Deploy to Netlify
 
-To learn more about Next.js, take a look at the following resources:
+1. Push this repo to GitHub
+2. Connect to Netlify:
+   - Go to [Netlify](https://netlify.com)
+   - Click "Add new site" > "Import an existing project"
+   - Connect your GitHub repo
+   - Netlify will auto-detect the Next.js configuration
+3. Deploy!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The `netlify.toml` file is already configured for deployment.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Optional API Keys
 
-## Deploy on Vercel
+For enhanced functionality, you can add these API keys:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Google Civic Information API** - For representative lookup by address
+- **OpenStates API** - For detailed legislator data and voting records
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Add these as environment variables in Netlify or a `.env.local` file.
+
+## Anomaly Detection Methods
+
+The tool automatically flags:
+
+- **Large Payments** - Individual transactions over $1 million
+- **Round Number Patterns** - Vendors receiving multiple exact round-figure payments
+- **High Frequency Payments** - Vendors with unusually many separate transactions
+- **Spending Concentration** - Departments with disproportionate budget shares
+
+## Contributing
+
+Contributions are welcome! This is a civic transparency project aimed at helping Massachusetts residents understand and monitor government spending.
+
+## Disclaimer
+
+This tool aggregates publicly available data for informational purposes. Flagged anomalies are statistical patterns and do not indicate wrongdoing. Always verify findings with official sources before drawing conclusions.
+
+## License
+
+MIT
