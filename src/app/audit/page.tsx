@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { GoogleSearchLink } from '@/components/ui/google-search-link';
-import { formatCurrency, formatCompactCurrency } from '@/lib/utils';
+import { formatCurrency, formatCompactCurrency, formatDate } from '@/lib/utils';
 import {
   Search,
   Filter,
@@ -264,6 +264,7 @@ export default function SpendingAuditPage() {
                     <th className="text-left py-2 px-4 font-medium text-slate-700">Vendor</th>
                     <th className="text-left py-2 px-4 font-medium text-slate-700">Department</th>
                     <th className="text-right py-2 px-4 font-medium text-slate-700">Amount</th>
+                    <th className="text-left py-2 px-4 font-medium text-slate-700">Date</th>
                     <th className="text-left py-2 px-4 font-medium text-slate-700">Description</th>
                   </tr>
                 </thead>
@@ -275,6 +276,7 @@ export default function SpendingAuditPage() {
                       </td>
                       <td className="py-2 px-4 text-slate-600">{t.department}</td>
                       <td className="py-2 px-4 text-right font-medium">{formatCurrency(t.amount)}</td>
+                      <td className="py-2 px-4 text-slate-600 text-xs">{t.date ? formatDate(t.date) : '-'}</td>
                       <td className="py-2 px-4 text-slate-600 text-xs">{t.description || '-'}</td>
                     </tr>
                   ))}
@@ -341,6 +343,7 @@ export default function SpendingAuditPage() {
                           <th className="text-left py-2 px-4 font-medium text-slate-700">Vendor</th>
                           <th className="text-left py-2 px-4 font-medium text-slate-700">Department</th>
                           <th className="text-right py-2 px-4 font-medium text-slate-700">Amount</th>
+                          <th className="text-left py-2 px-4 font-medium text-slate-700">Date</th>
                           <th className="text-left py-2 px-4 font-medium text-slate-700">Description</th>
                         </tr>
                       </thead>
@@ -352,6 +355,7 @@ export default function SpendingAuditPage() {
                             </td>
                             <td className="py-2 px-4 text-slate-600">{t.department}</td>
                             <td className="py-2 px-4 text-right font-medium">{formatCurrency(t.amount)}</td>
+                            <td className="py-2 px-4 text-slate-600 text-xs">{t.date ? formatDate(t.date) : '-'}</td>
                             <td className="py-2 px-4 text-slate-600 text-xs max-w-xs truncate">
                               {t.description || '-'}
                             </td>
