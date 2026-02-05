@@ -41,6 +41,18 @@ interface CategoryResult {
 // Categories of spending to audit
 const AUDIT_CATEGORIES = [
   {
+    id: 'feeding_childcare',
+    name: 'Feeding / Childcare Programs',
+    keywords: ['feeding', 'food program', 'child nutrition', 'head start', 'early head start', 'child care', 'childcare', 'daycare', 'CACFP', 'SFSP', 'summer food', 'afterschool meal'],
+    description: 'Child nutrition and childcare programs - high fraud risk (similar to MN Feeding Our Future)',
+  },
+  {
+    id: 'refugee_resettlement',
+    name: 'Refugee Resettlement',
+    keywords: ['refugee', 'resettlement', 'reception and placement', 'ORR', 'refugee services', 'refugee assistance', 'afghan', 'ukrainian', 'asylum'],
+    description: 'Refugee and asylum services - significant federal funding',
+  },
+  {
     id: 'dei_diversity',
     name: 'DEI / Diversity Programs',
     keywords: ['diversity', 'equity', 'inclusion', 'DEI', 'DEIB', 'racial equity', 'racial justice', 'antiracism', 'anti-racism'],
@@ -55,32 +67,50 @@ const AUDIT_CATEGORIES = [
   {
     id: 'immigrant',
     name: 'Immigrant / Migrant Services',
-    keywords: ['immigrant', 'immigration', 'migrant', 'refugee', 'asylum', 'newcomer', 'undocumented', 'sanctuary', 'resettlement'],
+    keywords: ['immigrant', 'immigration', 'migrant', 'refugee', 'asylum', 'newcomer', 'undocumented', 'sanctuary', 'resettlement', 'MIRA', 'new american'],
     description: 'Services for immigrants, refugees, and migrants',
   },
   {
     id: 'homeless',
     name: 'Homeless Services',
-    keywords: ['homeless', 'unhoused', 'shelter', 'housing first', 'encampment', 'street outreach', 'transitional housing', 'emergency shelter'],
+    keywords: ['homeless', 'unhoused', 'shelter', 'housing first', 'encampment', 'street outreach', 'transitional housing', 'emergency shelter', 'continuum of care', 'CoC'],
     description: 'Homeless services, shelters, and housing programs',
+  },
+  {
+    id: 'healthcare_community',
+    name: 'Community Health Centers',
+    keywords: ['community health', 'health center', 'FQHC', 'federally qualified', 'community clinic', 'free clinic', 'behavioral health', 'mental health services'],
+    description: 'Community health centers and clinics - large federal funding stream',
+  },
+  {
+    id: 'substance_abuse',
+    name: 'Substance Abuse / Opioid',
+    keywords: ['substance abuse', 'opioid', 'addiction', 'recovery', 'narcan', 'naloxone', 'SAMHSA', 'methadone', 'MAT', 'harm reduction'],
+    description: 'Substance abuse treatment and opioid response programs',
   },
   {
     id: 'climate',
     name: 'Climate / Environmental Justice',
-    keywords: ['climate', 'environmental justice', 'green new', 'carbon', 'sustainability', 'renewable', 'clean energy'],
+    keywords: ['climate', 'environmental justice', 'green new', 'carbon', 'sustainability', 'renewable', 'clean energy', 'solar', 'weatherization'],
     description: 'Climate change and environmental justice initiatives',
   },
   {
     id: 'consulting',
     name: 'Consulting / Studies',
-    keywords: ['consulting', 'consultant', 'study', 'assessment', 'analysis', 'survey', 'research'],
+    keywords: ['consulting', 'consultant', 'study', 'assessment', 'analysis', 'survey', 'research', 'evaluation', 'technical assistance'],
     description: 'Consulting fees, studies, and assessments',
   },
   {
     id: 'nonprofit',
     name: 'Nonprofit Grants',
-    keywords: ['grant', 'nonprofit', 'non-profit', 'foundation', 'community organization', 'community-based'],
+    keywords: ['grant', 'nonprofit', 'non-profit', 'foundation', 'community organization', 'community-based', '501c3', 'charitable'],
     description: 'Grants to nonprofits and community organizations',
+  },
+  {
+    id: 'workforce',
+    name: 'Workforce Development',
+    keywords: ['workforce', 'job training', 'career', 'employment services', 'WIOA', 'vocational', 'apprentice'],
+    description: 'Workforce and job training programs',
   },
   {
     id: 'legal_settlement',

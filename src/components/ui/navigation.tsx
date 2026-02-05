@@ -7,11 +7,11 @@ import {
   Building2,
   DollarSign,
   Users,
-  Calendar,
   Home,
   Baby,
   AlertTriangle,
   Search,
+  Store,
 } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +19,7 @@ const navItems = [
   { href: '/boston', label: 'Boston', icon: Building2 },
   { href: '/massachusetts', label: 'MA State', icon: DollarSign },
   { href: '/childcare', label: 'Childcare', icon: Baby },
+  { href: '/snap', label: 'SNAP', icon: Store },
   { href: '/audit', label: 'Audit', icon: Search },
   { href: '/alerts', label: 'Fraud', icon: AlertTriangle },
   { href: '/representatives', label: 'Reps', icon: Users },
@@ -67,8 +68,8 @@ export function Navigation() {
 
       {/* Mobile navigation */}
       <div className="border-t border-slate-200 md:hidden">
-        <div className="grid grid-cols-3 gap-1 p-2">
-          {navItems.slice(0, 6).map((item) => {
+        <div className="grid grid-cols-4 gap-1 p-2">
+          {navItems.slice(0, 8).map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link

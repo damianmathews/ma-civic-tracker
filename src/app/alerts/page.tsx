@@ -23,6 +23,8 @@ import {
   Repeat,
   SplitSquareHorizontal,
   Clock,
+  Link2,
+  Network,
 } from 'lucide-react';
 
 interface AnomalyStats {
@@ -32,6 +34,32 @@ interface AnomalyStats {
   mediumCount: number;
   lowCount: number;
   totalFlaggedAmount: number;
+}
+
+interface CrossRefMatch {
+  name: string;
+  normalizedName: string;
+  sources: {
+    source: string;
+    data: Record<string, unknown>;
+  }[];
+  totalAmount: number;
+  riskScore: number;
+  flags: string[];
+}
+
+interface CrossRefSummary {
+  totalCrossMatches: number;
+  highRisk: number;
+  mediumRisk: number;
+  lowRisk: number;
+  totalAmount: number;
+  sourceCombinations: {
+    childcareFederal: number;
+    childcareBoston: number;
+    federalBoston: number;
+    allThree: number;
+  };
 }
 
 const TYPE_INFO: Record<string, { icon: React.ElementType; label: string; color: string }> = {
@@ -54,6 +82,13 @@ export default function AnomalyDetection() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+
+  // Cross-reference analysis state
+  const [crossRefMatches, setCrossRefMatches] = useState<CrossRefMatch[]>([]);
+  const [crossRefSummary, setCrossRefSummary] = useState<CrossRefSummary | null>(null);
+  const [crossRefLoading, setCrossRefLoading] = useState(true);
+  const [showCrossRef, setShowCrossRef] = useState(false);
+  const [activeTab, setActiveTab] = useState<'anomalies' | 'crossref'>('anomalies');
 
   useEffect(() => {
     async function fetchAndAnalyze() {
@@ -85,7 +120,31 @@ export default function AnomalyDetection() {
       }
     }
 
+    async function fetchCrossRef() {
+      try {
+        const [matchesRes, summaryRes] = await Promise.all([
+          fetch('/api/crossref'),
+          fetch('/api/crossref?type=summary'),
+        ]);
+
+        const matchesData = await matchesRes.json();
+        const summaryData = await summaryRes.json();
+
+        if (matchesData.success) {
+          setCrossRefMatches(matchesData.data.matches || []);
+        }
+        if (summaryData.success) {
+          setCrossRefSummary(summaryData.data);
+        }
+      } catch (error) {
+        console.error('Error fetching cross-reference data:', error);
+      } finally {
+        setCrossRefLoading(false);
+      }
+    }
+
     fetchAndAnalyze();
+    fetchCrossRef();
   }, []);
 
   const filteredAnomalies = anomalies.filter((a) => {
@@ -183,38 +242,77 @@ export default function AnomalyDetection() {
       {stats && (
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard
-            title="Total Flags"
+            title="Pattern Flags"
             value={stats.totalAnomalies.toString()}
-            description="Patterns detected"
+            description="Anomalies detected"
             icon={AlertTriangle}
+            iconColor="text-amber-600"
           />
           <StatCard
-            title="Critical"
-            value={stats.criticalCount.toString()}
-            description="Immediate attention"
+            title="Critical/High"
+            value={`${stats.criticalCount}/${stats.highCount}`}
+            description="Needs attention"
             icon={FileWarning}
+            iconColor="text-red-600"
           />
           <StatCard
-            title="High Severity"
-            value={stats.highCount.toString()}
-            description="Should investigate"
-            icon={TrendingUp}
+            title="Cross-Matches"
+            value={crossRefSummary?.totalCrossMatches.toString() || '...'}
+            description="Multi-source entities"
+            icon={Link2}
+            iconColor="text-purple-600"
           />
           <StatCard
-            title="Medium/Low"
-            value={`${stats.mediumCount}/${stats.lowCount}`}
-            description="For review"
-            icon={Search}
+            title="High Risk Entities"
+            value={crossRefSummary?.highRisk.toString() || '...'}
+            description="Score 70+"
+            icon={Network}
+            iconColor="text-red-600"
           />
           <StatCard
             title="Flagged Amount"
-            value={formatCompactCurrency(stats.totalFlaggedAmount)}
-            description="Total in flagged items"
+            value={formatCompactCurrency(stats.totalFlaggedAmount + (crossRefSummary?.totalAmount || 0))}
+            description="Combined total"
             icon={CircleDollarSign}
+            iconColor="text-green-600"
           />
         </div>
       )}
 
+      {/* Tabs */}
+      <div className="mb-6 flex gap-2">
+        <button
+          onClick={() => setActiveTab('anomalies')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+            activeTab === 'anomalies'
+              ? 'bg-amber-600 text-white'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
+          <AlertTriangle className="h-4 w-4" />
+          Pattern Anomalies
+          <span className="ml-1 text-xs bg-white/20 px-2 py-0.5 rounded">
+            {stats?.totalAnomalies || 0}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab('crossref')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+            activeTab === 'crossref'
+              ? 'bg-purple-600 text-white'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
+          <Link2 className="h-4 w-4" />
+          Cross-Reference Analysis
+          <span className="ml-1 text-xs bg-white/20 px-2 py-0.5 rounded">
+            {crossRefSummary?.totalCrossMatches || 0}
+          </span>
+        </button>
+      </div>
+
+      {activeTab === 'anomalies' ? (
+        <>
       {/* Filters */}
       <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
         <div className="flex items-center gap-2 mb-4">
@@ -395,6 +493,136 @@ export default function AnomalyDetection() {
           })
         )}
       </div>
+        </>
+      ) : (
+        /* Cross-Reference Tab */
+        <>
+          <div className="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4">
+            <div className="flex items-start gap-3">
+              <Network className="h-5 w-5 text-purple-600 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-purple-800">Cross-Reference Analysis</h3>
+                <p className="mt-1 text-sm text-purple-700">
+                  Entities appearing in multiple datasets (childcare providers, federal grants, city payments).
+                  Multi-source entities may indicate legitimate businesses OR potential fraud schemes like
+                  double-dipping or shell company networks. High risk scores require investigation.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {crossRefLoading ? (
+            <div className="flex h-64 items-center justify-center">
+              <div className="text-center">
+                <div className="h-8 w-8 mx-auto animate-spin rounded-full border-4 border-purple-600 border-t-transparent"></div>
+                <p className="mt-4 text-slate-600">Running cross-reference analysis...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Cross-ref summary */}
+              {crossRefSummary && (
+                <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-lg border border-slate-200 bg-white p-4">
+                    <p className="text-sm text-slate-600">Childcare + Federal</p>
+                    <p className="text-2xl font-bold text-slate-900">{crossRefSummary.sourceCombinations.childcareFederal}</p>
+                    <p className="text-xs text-red-600">Potential double-dipping</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-4">
+                    <p className="text-sm text-slate-600">Childcare + Boston</p>
+                    <p className="text-2xl font-bold text-slate-900">{crossRefSummary.sourceCombinations.childcareBoston}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-4">
+                    <p className="text-sm text-slate-600">Federal + Boston</p>
+                    <p className="text-2xl font-bold text-slate-900">{crossRefSummary.sourceCombinations.federalBoston}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-4">
+                    <p className="text-sm text-slate-600">All Three Sources</p>
+                    <p className="text-2xl font-bold text-red-600">{crossRefSummary.sourceCombinations.allThree}</p>
+                    <p className="text-xs text-red-600">Highest priority</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Cross-ref matches list */}
+              <div className="space-y-3">
+                {crossRefMatches.length === 0 ? (
+                  <div className="rounded-lg border border-slate-200 bg-white p-8 text-center">
+                    <Shield className="h-12 w-12 mx-auto text-green-500" />
+                    <h3 className="mt-4 font-semibold text-slate-900">No Cross-Matches Found</h3>
+                    <p className="mt-2 text-sm text-slate-500">
+                      No entities appear across multiple datasets.
+                    </p>
+                  </div>
+                ) : (
+                  crossRefMatches.slice(0, 50).map((match, idx) => (
+                    <div key={idx} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                      <div className="px-4 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`px-2 py-1 rounded text-xs font-bold ${
+                            match.riskScore >= 70 ? 'bg-red-600 text-white' :
+                            match.riskScore >= 40 ? 'bg-amber-100 text-amber-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            Risk: {match.riskScore}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-slate-900">{match.name}</h3>
+                            <div className="flex gap-2 mt-1">
+                              {match.sources.map((s, sidx) => (
+                                <span key={sidx} className={`text-xs px-2 py-0.5 rounded ${
+                                  s.source === 'childcare' ? 'bg-pink-100 text-pink-800' :
+                                  s.source === 'federal' ? 'bg-green-100 text-green-800' :
+                                  'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {s.source}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-slate-900">{formatCompactCurrency(match.totalAmount)}</p>
+                          <p className="text-xs text-slate-500">{match.sources.length} sources</p>
+                        </div>
+                      </div>
+                      {match.flags.length > 0 && (
+                        <div className="px-4 py-2 bg-red-50 border-t border-red-100">
+                          <ul className="text-xs text-red-700">
+                            {match.flags.map((flag, fidx) => (
+                              <li key={fidx}>• {flag}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div className="px-4 py-2 bg-slate-50 border-t border-slate-200 flex gap-2">
+                        <a
+                          href={`https://www.google.com/search?q=${encodeURIComponent(match.name + ' Massachusetts')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                        >
+                          <Search className="h-3 w-3" />
+                          Google Search
+                        </a>
+                        <a
+                          href={`https://corp.sec.state.ma.us/corpweb/CorpSearch/CorpSearch.aspx`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                        >
+                          <Building2 className="h-3 w-3" />
+                          MA Corp Search
+                        </a>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </>
+      )}
 
       {/* Detection Methods Reference */}
       <div className="mt-12 rounded-lg border border-slate-200 bg-white p-6">
