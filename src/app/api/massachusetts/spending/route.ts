@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// Massachusetts Open Checkbook API
-// https://cthru.data.socrata.com/ - MA Open Checkbook
+// Massachusetts Open Checkbook API (CTHRU)
+// https://cthru.data.socrata.com/
 const MA_CHECKBOOK_API = 'https://cthru.data.socrata.com/resource';
 
 // Dataset IDs for MA Checkbook
 const DATASETS = {
-  // Expenditures
   expenditures: 'pegc-naaa',
-  // Payroll
-  payroll: 'qhrc-c79d',
 };
 
 export async function GET(request: NextRequest) {
@@ -23,11 +20,16 @@ export async function GET(request: NextRequest) {
     if (type === 'summary') {
       // Fetch expenditure summary from MA Open Checkbook
       const response = await fetch(
-        `${MA_CHECKBOOK_API}/${DATASETS.expenditures}.json?$limit=5000&$order=check_amount DESC`
+        `${MA_CHECKBOOK_API}/${DATASETS.expenditures}.json?$limit=5000&$order=amount DESC`,
+        {
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
       );
 
       if (!response.ok) {
-        // Fallback - try alternative endpoint
+        console.error('MA API response not ok:', response.status, response.statusText);
         return NextResponse.json({
           success: true,
           data: {
@@ -35,12 +37,25 @@ export async function GET(request: NextRequest) {
             totalTransactions: 0,
             topAgencies: [],
             topVendors: [],
-            message: 'MA Open Checkbook API may require authentication. Using sample data.',
+            message: 'MA Open Checkbook API temporarily unavailable.',
           },
         });
       }
 
       const records = await response.json();
+
+      if (!Array.isArray(records) || records.length === 0) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            totalSpending: 0,
+            totalTransactions: 0,
+            topAgencies: [],
+            topVendors: [],
+            message: 'No records returned from MA Open Checkbook API.',
+          },
+        });
+      }
 
       // Aggregate by agency/department
       const agencyTotals: Record<string, number> = {};
@@ -48,9 +63,9 @@ export async function GET(request: NextRequest) {
       let totalSpending = 0;
 
       for (const record of records) {
-        const agencyName = record.department || record.agency || 'Unknown';
-        const vendorName = record.vendor || record.vendor_name || 'Unknown';
-        const amount = parseFloat(record.check_amount || record.amount || '0');
+        const agencyName = record.department || record.cabinet_secretariat || 'Unknown';
+        const vendorName = record.vendor || 'Unknown';
+        const amount = parseFloat(record.amount || '0');
 
         if (!isNaN(amount) && amount > 0) {
           totalSpending += amount;
@@ -81,16 +96,23 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'transactions') {
-      let url = `${MA_CHECKBOOK_API}/${DATASETS.expenditures}.json?$limit=${limit}&$order=check_amount DESC`;
+      let url = `${MA_CHECKBOOK_API}/${DATASETS.expenditures}.json?$limit=${limit}&$order=amount DESC`;
 
       if (agency) {
-        url += `&department=${encodeURIComponent(agency)}`;
+        url += `&$where=department='${encodeURIComponent(agency)}'`;
       }
       if (vendor) {
-        url += `&$where=vendor LIKE '%${vendor}%'`;
+        const whereClause = agency
+          ? ` AND upper(vendor) LIKE upper('%${vendor}%')`
+          : `&$where=upper(vendor) LIKE upper('%${vendor}%')`;
+        url += whereClause;
       }
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
 
       if (!response.ok) {
         return NextResponse.json({
@@ -102,11 +124,11 @@ export async function GET(request: NextRequest) {
       const records = await response.json();
 
       const transactions = records.map((r: Record<string, unknown>) => ({
-        agency: r.department || r.agency || 'Unknown',
-        vendor: r.vendor || r.vendor_name || 'Unknown',
-        amount: parseFloat(String(r.check_amount || r.amount || '0')),
-        date: r.check_date || r.date || '',
-        description: r.description || r.object_class || '',
+        agency: r.department || r.cabinet_secretariat || 'Unknown',
+        vendor: r.vendor || 'Unknown',
+        amount: parseFloat(String(r.amount || '0')),
+        date: r.date || '',
+        description: r.appropriation_name || r.object_class || '',
         fundCode: r.fund || '',
       }));
 
@@ -121,7 +143,12 @@ export async function GET(request: NextRequest) {
 
     if (type === 'agencies') {
       const response = await fetch(
-        `${MA_CHECKBOOK_API}/${DATASETS.expenditures}.json?$select=department&$group=department&$limit=500`
+        `${MA_CHECKBOOK_API}/${DATASETS.expenditures}.json?$select=department&$group=department&$limit=500`,
+        {
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
       );
 
       if (!response.ok) {
@@ -140,6 +167,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: { agencies },
+      });
+    }
+
+    if (type === 'vendors') {
+      // Get top vendors for cross-reference
+      const response = await fetch(
+        `${MA_CHECKBOOK_API}/${DATASETS.expenditures}.json?$select=vendor,sum(amount) as total&$group=vendor&$order=total DESC&$limit=${limit}`,
+        {
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        return NextResponse.json({
+          success: true,
+          data: { vendors: [] },
+        });
+      }
+
+      const records = await response.json();
+      const vendors = records.map((r: Record<string, unknown>) => ({
+        name: r.vendor,
+        value: parseFloat(String(r.total || '0')),
+      }));
+
+      return NextResponse.json({
+        success: true,
+        data: { vendors },
       });
     }
 

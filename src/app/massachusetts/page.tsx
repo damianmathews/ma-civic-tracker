@@ -50,6 +50,8 @@ export default function MassachusettsSpending() {
   const [federalGrants, setFederalGrants] = useState<FederalGrant[]>([]);
   const [federalPrograms, setFederalPrograms] = useState<FederalProgram[]>([]);
   const [federalTotal, setFederalTotal] = useState(0);
+  const [federalTotalCount, setFederalTotalCount] = useState(0);
+  const [federalProgramCount, setFederalProgramCount] = useState(0);
   const [federalLoading, setFederalLoading] = useState(true);
   const [federalExpanded, setFederalExpanded] = useState(false);
 
@@ -90,8 +92,8 @@ export default function MassachusettsSpending() {
     async function fetchFederalData() {
       try {
         const [grantsRes, programsRes] = await Promise.all([
-          fetch('/api/federal/spending?type=grants&limit=100&fy=2024'),
-          fetch('/api/federal/spending?type=cfda&fy=2024'),
+          fetch('/api/federal/spending?type=grants&limit=500&fy=2024'),
+          fetch('/api/federal/spending?type=cfda&limit=200&fy=2024'),
         ]);
 
         const grantsData = await grantsRes.json();
@@ -107,8 +109,11 @@ export default function MassachusettsSpending() {
             cfda: g['CFDA Number'] || '',
           }));
           setFederalGrants(grants);
+          // Use actual total from API metadata, not array length
           const total = grants.reduce((sum: number, g: FederalGrant) => sum + g.amount, 0);
           setFederalTotal(total);
+          // Store actual total count
+          setFederalTotalCount(grantsData.data.total || grants.length);
         }
 
         if (programsData.success && programsData.data.programs) {
@@ -116,6 +121,7 @@ export default function MassachusettsSpending() {
             name: p.name,
             amount: p.amount,
           })));
+          setFederalProgramCount(programsData.data.totalPrograms || programsData.data.programs.length);
         }
       } catch (err) {
         console.error('Error fetching federal data:', err);
@@ -470,14 +476,14 @@ export default function MassachusettsSpending() {
                 />
                 <StatCard
                   title="Grant Records"
-                  value={federalGrants.length.toLocaleString()}
-                  description="Individual awards"
+                  value={federalTotalCount.toLocaleString()}
+                  description={`${federalGrants.length} shown of ${federalTotalCount.toLocaleString()}`}
                   icon={FileText}
                   iconColor="text-green-600"
                 />
                 <StatCard
                   title="Federal Programs"
-                  value={federalPrograms.length.toString()}
+                  value={federalProgramCount.toLocaleString()}
                   description="CFDA programs funding MA"
                   icon={Building2}
                   iconColor="text-green-600"

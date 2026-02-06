@@ -140,6 +140,7 @@ export async function GET(request: NextRequest) {
         success: true,
         data: {
           recipients: data.results || [],
+          totalRecipients: data.page_metadata?.total || data.results?.length || 0,
           fiscalYear,
         },
       });
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
             recipient_locations: [{ country: 'USA', state: 'MA' }],
           },
           category: 'cfda',
-          limit: 50,
+          limit: limit,
         }),
       });
 
@@ -167,6 +168,7 @@ export async function GET(request: NextRequest) {
         success: true,
         data: {
           programs: data.results || [],
+          totalPrograms: data.page_metadata?.total || data.results?.length || 0,
           fiscalYear,
         },
       });
